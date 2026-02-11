@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MercadoApp.Pages.EditProdutoPage"
+             Title="Editar Produto"
+             BackgroundColor="White">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+            <Label Text="Nome do produto" FontAttributes="Bold"/>
+            <Entry x:Name="Nome" Placeholder="Nome" HeightRequest="48"/>
+
+            <Label Text="Foto" FontAttributes="Bold"/>
+            <Grid ColumnDefinitions="Auto,*">
+                <Image x:Name="PreviewFoto" WidthRequest="100" HeightRequest="100" BackgroundColor="#EEEEEE" Aspect="AspectFill"/>
+                <Button Grid.Column="1" x:Name="BtnFoto" Text="Alterar foto" Clicked="OnFotoClicked" BackgroundColor="{StaticResource Primary}" TextColor="White" HeightRequest="44" VerticalOptions="Center"/>
+            </Grid>
+
+            <Label Text="Data de entrada" FontAttributes="Bold"/>
+            <DatePicker x:Name="DataEntrada" MinimumHeightRequest="48"/>
+            <Label Text="Data de validade" FontAttributes="Bold"/>
+            <DatePicker x:Name="DataValidade" MinimumHeightRequest="48"/>
+
+            <Label Text="Quantidade" FontAttributes="Bold"/>
+            <Entry x:Name="Quantidade" Keyboard="Numeric" HeightRequest="48"/>
+
+            <Button x:Name="BtnSalvar" Text="Salvar" Clicked="OnSalvarClicked"
+                    BackgroundColor="{StaticResource Primary}" TextColor="White" HeightRequest="52" FontSize="18" Margin="0,16,0,0"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

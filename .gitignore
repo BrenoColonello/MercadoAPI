@@ -1,0 +1,26 @@
+# Visual Studio
+.vs/
+
+# JetBrains
+.idea/
+
+# Expo
+MercadoAppRN/.expo/
+
+# Node
+MercadoAppRN/node_modules/
+
+# .NET build outputs
+**/bin/
+**/obj/
+
+# Android/Gradle
+**/android/.gradle/
+**/android/app/build/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+@MercadoApi_HostAddress = http://localhost:5192
+
+GET {{MercadoApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
