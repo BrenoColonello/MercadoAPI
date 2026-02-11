@@ -21,6 +21,9 @@ MercadoAppRN/node_modules/
 # Logs
 *.log
 
+# Local screenshots
+errosExpo/
+
 # OS
 .DS_Store
 Thumbs.db
