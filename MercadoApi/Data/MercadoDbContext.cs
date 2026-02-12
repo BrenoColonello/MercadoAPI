@@ -21,7 +21,7 @@ public class MercadoDbContext : DbContext
             e.Property(p => p.DataValidade).IsRequired();
             e.Property(p => p.Quantidade).HasDefaultValue(1);
             e.Property(p => p.Ativo).HasDefaultValue(true);
-            e.Property(p => p.CriadoEm).HasDefaultValueSql("datetime('now')");
+            e.Property(p => p.CriadoEm).HasDefaultValueSql("GETDATE()");
         });
     }
 }

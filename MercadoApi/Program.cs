@@ -8,7 +8,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<MercadoDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=mercado.db"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? "Server=localhost;Database=MercadoDb;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True"));
 
 builder.Services.AddCors(options =>
 {
