@@ -34,8 +34,8 @@ export default function EditarProdutoScreen({ route, navigation }) {
           if (cancelled) return;
           setNome(p.nomeProduto || '');
           setFotoBase64(p.fotoProduto || '');
-          setDataEntrada((p.dataEntrada || '').toString().slice(0, 10));
-          setDataValidade((p.dataValidade || '').toString().slice(0, 10));
+          setDataEntrada(fromIsoToBr((p.dataEntrada || '').toString().slice(0, 10)));
+          setDataValidade(fromIsoToBr((p.dataValidade || '').toString().slice(0, 10)));
           setQuantidade(String(p.quantidade ?? 1));
         } catch (e) {
           if (!cancelled) Alert.alert('Erro', e.message);
@@ -72,11 +72,17 @@ export default function EditarProdutoScreen({ route, navigation }) {
     const qtd = parseInt(quantidade, 10) || 1;
     setSaving(true);
     try {
+      const dataEntradaIso = toIsoDate(dataEntrada);
+      const dataValidadeIso = toIsoDate(dataValidade);
+      if (!dataEntradaIso || !dataValidadeIso) {
+        Alert.alert('Atenção', 'Informe as datas no formato DD-MM-AAAA.');
+        return;
+      }
       await atualizarProduto(id, {
         nomeProduto: n,
         fotoProduto: fotoBase64,
-        dataEntrada,
-        dataValidade,
+        dataEntrada: dataEntradaIso,
+        dataValidade: dataValidadeIso,
         quantidade: qtd,
       });
       Alert.alert('Sucesso', 'Produto atualizado.', [
@@ -125,13 +131,13 @@ export default function EditarProdutoScreen({ route, navigation }) {
           <Text style={styles.fotoBtnText}>Alterar foto</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.label}>Data de entrada (AAAA-MM-DD)</Text>
+      <Text style={styles.label}>Data de entrada (DD-MM-AAAA)</Text>
       <TextInput
         style={styles.input}
         value={dataEntrada}
         onChangeText={setDataEntrada}
       />
-      <Text style={styles.label}>Data de validade (AAAA-MM-DD)</Text>
+      <Text style={styles.label}>Data de validade (DD-MM-AAAA)</Text>
       <TextInput
         style={styles.input}
         value={dataValidade}
@@ -195,3 +201,29 @@ const styles = StyleSheet.create({
   btnDisabled: { opacity: 0.7 },
   btnSalvarText: { color: '#fff', fontSize: 18, fontWeight: '600' },
 });
+
+function fromIsoToBr(isoDate) {
+  const match = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/.exec(isoDate);
+  if (!match) return '';
+  const year = match[1];
+  const month = match[2];
+  const day = match[3];
+  return `${day}-${month}-${year}`;
+}
+
+function toIsoDate(brDate) {
+  const match = /^\s*(\d{2})[/-](\d{2})[/-](\d{4})\s*$/.exec(brDate);
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}

@@ -17,8 +17,8 @@ import { colors, spacing } from '../theme';
 export default function AdicionarProdutoScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [fotoBase64, setFotoBase64] = useState('');
-  const [dataEntrada, setDataEntrada] = useState(() => formatDate(new Date()));
-  const [dataValidade, setDataValidade] = useState(() => formatDate(addDays(new Date(), 7)));
+  const [dataEntrada, setDataEntrada] = useState(() => formatDateBr(new Date()));
+  const [dataValidade, setDataValidade] = useState(() => formatDateBr(addDays(new Date(), 7)));
   const [quantidade, setQuantidade] = useState('1');
   const [loading, setLoading] = useState(false);
 
@@ -47,11 +47,17 @@ export default function AdicionarProdutoScreen({ navigation }) {
     const qtd = parseInt(quantidade, 10) || 1;
     setLoading(true);
     try {
+      const dataEntradaIso = toIsoDate(dataEntrada);
+      const dataValidadeIso = toIsoDate(dataValidade);
+      if (!dataEntradaIso || !dataValidadeIso) {
+        Alert.alert('Atenção', 'Informe as datas no formato DD-MM-AAAA.');
+        return;
+      }
       await criarProduto({
         nomeProduto: n,
         fotoProduto: fotoBase64,
-        dataEntrada,
-        dataValidade,
+        dataEntrada: dataEntradaIso,
+        dataValidade: dataValidadeIso,
         quantidade: qtd,
       });
       Alert.alert('Sucesso', 'Produto cadastrado.', [
@@ -93,19 +99,19 @@ export default function AdicionarProdutoScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
-      <Text style={styles.label}>Data de entrada (AAAA-MM-DD)</Text>
+      <Text style={styles.label}>Data de entrada (DD-MM-AAAA)</Text>
       <TextInput
         style={styles.input}
         value={dataEntrada}
         onChangeText={setDataEntrada}
-        placeholder="2025-02-04"
+        placeholder="24-02-2026"
       />
-      <Text style={styles.label}>Data de validade (AAAA-MM-DD)</Text>
+      <Text style={styles.label}>Data de validade (DD-MM-AAAA)</Text>
       <TextInput
         style={styles.input}
         value={dataValidade}
         onChangeText={setDataValidade}
-        placeholder="2025-02-18"
+        placeholder="02-03-2026"
       />
       <Text style={styles.label}>Quantidade</Text>
       <TextInput
@@ -129,8 +135,27 @@ export default function AdicionarProdutoScreen({ navigation }) {
   );
 }
 
-function formatDate(d) {
-  return d.toISOString().slice(0, 10);
+function formatDateBr(d) {
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+function toIsoDate(brDate) {
+  const match = /^\s*(\d{2})[/-](\d{2})[/-](\d{4})\s*$/.exec(brDate);
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 function addDays(d, days) {
   const r = new Date(d);
