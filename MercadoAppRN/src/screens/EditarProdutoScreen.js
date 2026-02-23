@@ -1,4 +1,4 @@
-npx expo install @react-native-community/datetimepickernpx expo install @react-native-community/datetimepickernpx expo install @react-native-community/datetimepickernpx expo install @react-native-community/datetimepickerimport React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,

@@ -66,6 +66,8 @@ export default function ListaProdutosScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [busca, setBusca] = useState('');
+  const [filtroValidade, setFiltroValidade] = useState('todos');
+  const [ordenacao, setOrdenacao] = useState('validade');
 
   const carregar = useCallback(async () => {
     try {
@@ -90,6 +92,11 @@ export default function ListaProdutosScreen({ navigation }) {
     setRefreshing(true);
     carregar();
   };
+
+  const produtosVisiveis = ordenarProdutos(
+    filtrarProdutos(produtos, filtroValidade, busca),
+    ordenacao
+  );
 
   const handleConferir = (item) => {
     Alert.alert(
@@ -147,6 +154,41 @@ export default function ListaProdutosScreen({ navigation }) {
         onChangeText={setBusca}
         placeholderTextColor={colors.textSecondary}
       />
+      <View style={styles.filtrosRow}>
+        <FiltroBtn
+          label="Todos"
+          ativo={filtroValidade === 'todos'}
+          onPress={() => setFiltroValidade('todos')}
+        />
+        <FiltroBtn
+          label="Vencidos"
+          ativo={filtroValidade === 'vencidos'}
+          onPress={() => setFiltroValidade('vencidos')}
+        />
+        <FiltroBtn
+          label="Promo (7d)"
+          ativo={filtroValidade === 'promo'}
+          onPress={() => setFiltroValidade('promo')}
+        />
+      </View>
+      <View style={styles.ordenacaoRow}>
+        <Text style={styles.ordenacaoLabel}>Ordenar:</Text>
+        <OrdenacaoBtn
+          label="Validade"
+          ativo={ordenacao === 'validade'}
+          onPress={() => setOrdenacao('validade')}
+        />
+        <OrdenacaoBtn
+          label="Nome"
+          ativo={ordenacao === 'nome'}
+          onPress={() => setOrdenacao('nome')}
+        />
+        <OrdenacaoBtn
+          label="Criacao"
+          ativo={ordenacao === 'criacao'}
+          onPress={() => setOrdenacao('criacao')}
+        />
+      </View>
       <TouchableOpacity
         style={styles.btnAdicionar}
         onPress={() => navigation.navigate('AdicionarProduto')}
@@ -154,7 +196,7 @@ export default function ListaProdutosScreen({ navigation }) {
         <Text style={styles.btnAdicionarText}>+ Adicionar Produto</Text>
       </TouchableOpacity>
       <FlatList
-        data={produtos}
+        data={produtosVisiveis}
         keyExtractor={(p) => String(p.id)}
         renderItem={({ item }) => (
           <ProdutoCard
@@ -173,6 +215,63 @@ export default function ListaProdutosScreen({ navigation }) {
         contentContainerStyle={styles.lista}
       />
     </View>
+  );
+}
+
+function filtrarProdutos(lista, filtro, busca) {
+  const termo = (busca || '').trim().toLowerCase();
+  return lista.filter((p) => {
+    if (termo && !String(p.nomeProduto || '').toLowerCase().includes(termo)) {
+      return false;
+    }
+    const dias = Number(p.diasRestantes);
+    if (filtro === 'vencidos') return dias < 0;
+    if (filtro === 'promo') return dias >= 0 && dias <= 7;
+    return true;
+  });
+}
+
+function ordenarProdutos(lista, criterio) {
+  const copy = [...lista];
+  if (criterio === 'nome') {
+    copy.sort((a, b) => String(a.nomeProduto || '').localeCompare(String(b.nomeProduto || '')));
+    return copy;
+  }
+  if (criterio === 'criacao') {
+    copy.sort((a, b) => {
+      const da = Date.parse(a.criadoEm || '') || 0;
+      const db = Date.parse(b.criadoEm || '') || 0;
+      return db - da;
+    });
+    return copy;
+  }
+  copy.sort((a, b) => {
+    const da = Number(a.diasRestantes);
+    const db = Number(b.diasRestantes);
+    return da - db;
+  });
+  return copy;
+}
+
+function FiltroBtn({ label, ativo, onPress }) {
+  return (
+    <TouchableOpacity
+      style={[styles.filtroBtn, ativo && styles.filtroBtnAtivo]}
+      onPress={onPress}
+    >
+      <Text style={[styles.filtroText, ativo && styles.filtroTextAtivo]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function OrdenacaoBtn({ label, ativo, onPress }) {
+  return (
+    <TouchableOpacity
+      style={[styles.ordenacaoBtn, ativo && styles.ordenacaoBtnAtivo]}
+      onPress={onPress}
+    >
+      <Text style={[styles.ordenacaoText, ativo && styles.ordenacaoTextAtivo]}>{label}</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -196,6 +295,46 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   btnAdicionarText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  filtrosRow: {
+    flexDirection: 'row',
+    marginBottom: spacing.sm,
+  },
+  filtroBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    marginRight: spacing.sm,
+  },
+  filtroBtnAtivo: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filtroText: { color: colors.textSecondary, fontWeight: '600', fontSize: 13 },
+  filtroTextAtivo: { color: '#fff' },
+  ordenacaoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  ordenacaoLabel: { color: colors.textSecondary, marginRight: spacing.sm, fontSize: 13 },
+  ordenacaoBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    marginRight: spacing.sm,
+  },
+  ordenacaoBtnAtivo: {
+    backgroundColor: colors.primaryDark,
+    borderColor: colors.primaryDark,
+  },
+  ordenacaoText: { color: colors.textSecondary, fontWeight: '600', fontSize: 12 },
+  ordenacaoTextAtivo: { color: '#fff' },
   lista: { paddingBottom: spacing.xl },
   card: {
     backgroundColor: colors.card,
