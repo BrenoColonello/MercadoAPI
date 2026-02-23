@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+npx expo install @react-native-community/datetimepickernpx expo install @react-native-community/datetimepickernpx expo install @react-native-community/datetimepickernpx expo install @react-native-community/datetimepickerimport React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { obterProduto, atualizarProduto } from '../../api/produtos';
@@ -24,6 +25,8 @@ export default function EditarProdutoScreen({ route, navigation }) {
   const [quantidade, setQuantidade] = useState('1');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showEntradaPicker, setShowEntradaPicker] = useState(false);
+  const [showValidadePicker, setShowValidadePicker] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -132,17 +135,59 @@ export default function EditarProdutoScreen({ route, navigation }) {
         </TouchableOpacity>
       </View>
       <Text style={styles.label}>Data de entrada (DD-MM-AAAA)</Text>
-      <TextInput
-        style={styles.input}
-        value={dataEntrada}
-        onChangeText={setDataEntrada}
-      />
+      <View style={styles.inputRow}>
+        <TextInput
+          style={[styles.input, styles.inputFlex]}
+          value={dataEntrada}
+          onChangeText={(t) => setDataEntrada(maskDateInput(t))}
+          keyboardType="number-pad"
+        />
+        <TouchableOpacity
+          style={styles.calendarBtn}
+          onPress={() => setShowEntradaPicker(true)}
+          accessibilityLabel="Abrir calendario de entrada"
+        >
+          <Text style={styles.calendarText}>CAL</Text>
+        </TouchableOpacity>
+      </View>
+      {showEntradaPicker && (
+        <DateTimePicker
+          value={parseBrToDate(dataEntrada)}
+          mode="date"
+          display="default"
+          onChange={(_, selectedDate) => {
+            setShowEntradaPicker(false);
+            if (selectedDate) setDataEntrada(formatDateBr(selectedDate));
+          }}
+        />
+      )}
       <Text style={styles.label}>Data de validade (DD-MM-AAAA)</Text>
-      <TextInput
-        style={styles.input}
-        value={dataValidade}
-        onChangeText={setDataValidade}
-      />
+      <View style={styles.inputRow}>
+        <TextInput
+          style={[styles.input, styles.inputFlex]}
+          value={dataValidade}
+          onChangeText={(t) => setDataValidade(maskDateInput(t))}
+          keyboardType="number-pad"
+        />
+        <TouchableOpacity
+          style={styles.calendarBtn}
+          onPress={() => setShowValidadePicker(true)}
+          accessibilityLabel="Abrir calendario de validade"
+        >
+          <Text style={styles.calendarText}>CAL</Text>
+        </TouchableOpacity>
+      </View>
+      {showValidadePicker && (
+        <DateTimePicker
+          value={parseBrToDate(dataValidade)}
+          mode="date"
+          display="default"
+          onChange={(_, selectedDate) => {
+            setShowValidadePicker(false);
+            if (selectedDate) setDataValidade(formatDateBr(selectedDate));
+          }}
+        />
+      )}
       <Text style={styles.label}>Quantidade</Text>
       <TextInput
         style={styles.input}
@@ -179,6 +224,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     fontSize: 16,
   },
+  inputRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
+  inputFlex: { flex: 1, marginBottom: 0 },
+  calendarBtn: {
+    marginLeft: spacing.sm,
+    height: 48,
+    paddingHorizontal: spacing.md,
+    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calendarText: { color: colors.textSecondary, fontWeight: '700', fontSize: 12 },
   fotoRow: { flexDirection: 'row', marginBottom: spacing.md, alignItems: 'center' },
   preview: { width: 100, height: 100, borderRadius: 8 },
   previewPlaceholder: { backgroundColor: colors.surface },
@@ -202,6 +261,13 @@ const styles = StyleSheet.create({
   btnSalvarText: { color: '#fff', fontSize: 18, fontWeight: '600' },
 });
 
+function formatDateBr(d) {
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 function fromIsoToBr(isoDate) {
   const match = /^\s*(\d{4})-(\d{2})-(\d{2})\s*$/.exec(isoDate);
   if (!match) return '';
@@ -209,6 +275,30 @@ function fromIsoToBr(isoDate) {
   const month = match[2];
   const day = match[3];
   return `${day}-${month}-${year}`;
+}
+
+function maskDateInput(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
+}
+
+function parseBrToDate(brDate) {
+  const match = /^\s*(\d{2})[/-](\d{2})[/-](\d{4})\s*$/.exec(brDate);
+  if (!match) return new Date();
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return new Date();
+  }
+  return date;
 }
 
 function toIsoDate(brDate) {
