@@ -6,6 +6,7 @@
 
 # Expo
 MercadoAppRN/.expo/
+.expo/
 
 # Node
 MercadoAppRN/node_modules/
@@ -20,6 +21,12 @@ MercadoAppRN/node_modules/
 
 # Logs
 *.log
+
+# Local database
+MercadoApi/mercado.db
+
+# Legacy app (MAUI)
+MercadoApp/
 
 # Local screenshots
 errosExpo/
